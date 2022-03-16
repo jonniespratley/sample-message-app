@@ -11,3 +11,62 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+fieldset {
+  border: 2px solid rgb(100 100 100 / 30%);
+  margin-top: 1rem;
+}
+
+
+pre {
+  overflow: auto;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+.panel {
+  padding: 1rem;
+  margin: 1rem 0;
+  border: 2px solid rgb(100 100 100 / 30%);
+  background: rgb(0 0 0 / 40%);
+}
+
+.success {
+  color: #3CC29A;
+}
+
+
+.wxc-activity-stream > .wxc-activity {
+  border-top: 1px solid rgb(100 100 100 / 70%);
+}
+.wxc.wxc-activity-stream {
+  border: 1px solid gray;
+}
+
+.flex {
+  display: flex;
+}
+.flex__item {
+  flex: 1;
+}
+
+select {
+  min-width: 300px;
+  
+  width: 100%;
+  
+  margin-right: 1rem;
+  min-height: 30px;
+}
+input {
+  width: 100%;
+  margin: 0.5rem 0;
+  
+  min-height: 30px;
+}
+
+button {
+  margin-top: 1rem;
+  margin-right: 1rem;
+  font-size: 1.1rem;
+  min-width: 100px;
+}

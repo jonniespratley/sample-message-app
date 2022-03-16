@@ -1,5 +1,19 @@
 .App {
-  text-align: center;
+  padding: 1rem;
+  margin: 1rem;
+}
+.App-layout {
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: 500px 1fr;
+}
+
+.App-sidebar {  
+ 
+
+}
+.App-content {
+ 
 }
 
 .App-logo {
@@ -15,13 +29,14 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(10px + 1vmin);
   color: white;
+  font-weight: normal;
 }
 
 .App-link {
@@ -36,3 +51,4 @@
     transform: rotate(360deg);
   }
 }
+
