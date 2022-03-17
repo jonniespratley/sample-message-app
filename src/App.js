@@ -8,6 +8,8 @@ import {
   WebexActivityStream,
 } from "@webex/components";
 import { constructHydraId } from "@webex/common";
+
+import {TestWebexActivity} from './components'
 import "./App.css";
 
 if (window.webexSDKAdapterSetLogLevel) {
@@ -76,10 +78,15 @@ function App() {
 
   const loadRooms = (e) => {
     adapter.current.datasource.internal.conversation.list().then((convos) => {
+      console.log('conversations', convos);
+
       const data = convos
         .filter((c) => c.displayName !== undefined)
-        .map((c) => fromSDKRoom(c));
-      console.table(data);
+        .map((c) => fromSDKRoom(c))
+        .sort();
+      
+        console.table(data);
+      
       setRooms(data);
     });
   };
@@ -132,11 +139,21 @@ function App() {
     setRoomID(e.currentTarget.value);
   };
 
+  let pastHandle = null;
+  const handleLoadingPastActivities = () => {
+    if(pastHandle){
+      pastHandle.unsubscribe();
+    }
+    pastHandle = adapter.current.roomsAdapter.getPastActivities(roomID, 25).subscribe(console.table);
+    adapter.current.roomsAdapter.hasMoreActivities(roomID);
+  }
+
+
   useEffect(() => {
     async function doConnect() {
       await handleConnect();
     }
-    doConnect();
+    //doConnect();
 
     return () => {
       handleDisconnect();
@@ -178,7 +195,7 @@ function App() {
               <fieldset>
                 <legend>Rooms</legend>
                 <select onChange={handleRoomChange}>
-                  <option>Choose a room</option>
+                
                   {rooms &&
                     rooms.map((r) => (
                       <option key={r.ID} value={r.ID}>
@@ -190,6 +207,13 @@ function App() {
                   Load rooms
                 </button>
               </fieldset>
+
+              <fieldset>
+                <legend>Past Activities</legend>
+                <button onClick={handleLoadingPastActivities}>Fetch Past Activities</button>
+              </fieldset>
+
+
               <fieldset>
                 <legend>Room ID</legend>
                 <input
@@ -233,33 +257,36 @@ function App() {
         </div>
 
         <div className="App-content">
+          <Panel>
+            <form onSubmit={handleCreateMessage}>
+              <fieldset>
+                
+                <input
+                  type="text"
+                  placeholder="Write a message..."
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                />
+                <button type="submit">Send</button>
+              </fieldset>
+            </form>
+          </Panel>
+
+
           {adapterConnected && (
             <WebexDataProvider adapter={adapter.current}>
+              <TestWebexActivity roomID={formData.roomID || roomID}/>
               <Panel>
                 <h2>WebexActivityStream (roomID)</h2>
-
                 {!formData.roomID && <h3>Specifiy a roomID</h3>}
                 {formData.roomID && (
                   <WebexActivityStream
                     roomID={formData.roomID}
-                    style={{ height: 300 }}
+                    style={{ height: 500 }}
                   />
                 )}
               </Panel>
-              <Panel>
-                <form onSubmit={handleCreateMessage}>
-                  <fieldset>
-                    <legend>Message</legend>
-                    <input
-                      type="text"
-                      placeholder="Write a message..."
-                      value={text}
-                      onChange={(e) => setText(e.target.value)}
-                    />
-                    <button type="submit">Send</button>
-                  </fieldset>
-                </form>
-              </Panel>
+            
 
               
             </WebexDataProvider>
