@@ -42,6 +42,7 @@ const TestPanel = ({ title = "Test Panel", roomID }) => {
 
 function fromSDKRoom(sdkConvo) {
   return {
+    _id: sdkConvo.id,
     ID: constructHydraId("room", sdkConvo.id),
     type: sdkConvo.objectType,
     title: sdkConvo.displayName,
@@ -63,7 +64,7 @@ function App() {
   const [accessToken, setAccessToken] = useState(
     `${process.env.WEBEX_ACCESS_TOKEN}`
   );
-  const [roomID, setRoomID] = useState("");
+  const [roomID, setRoomID] = useState("Y2lzY29zcGFyazovL3VzL1JPT00vYmMyMjY2YjAtZDZjMy0xMWViLWFlZjUtNmQ3NzkwOGJmY2Ji");
   const [personID, setPersonID] = useState("");
 
   const [activityID, setActivityID] = useState("");
