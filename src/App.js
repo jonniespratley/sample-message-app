@@ -2,45 +2,31 @@ import React, { useEffect, useState } from "react";
 import Webex from "webex";
 import WebexSDKAdapter from "@webex/sdk-component-adapter";
 import {
-  useActivityStream,
+  ActivityHeader,
   WebexDataProvider,
   WebexActivity,
+  WebexAvatar,
+  hooks,
   WebexActivityStream,
 } from "@webex/components";
-import { constructHydraId } from "@webex/common";
 
-import {TestWebexActivity} from './components'
+import { constructHydraId } from "@webex/common";
+import { TestWebexActivity, TestActivityPanel } from "./components";
+
 import "./App.css";
+import { Panel } from "./components/Panel";
+
+const { useActivityStream, usePerson, useActivity } = hooks;
 
 if (window.webexSDKAdapterSetLogLevel) {
-  window.webexSDKAdapterSetLogLevel("debug");
+  //window.webexSDKAdapterSetLogLevel("debug");
 }
 
 const webexUtils = {
   constructHydraId,
 };
+
 window.webexUtils = webexUtils;
-
-const Panel = ({ title, children }) => (
-  <div className="panel">
-    {title && <h2>{title}</h2>}
-    {children}
-  </div>
-);
-
-const TestPanel = ({ title = "Test Panel", roomID }) => {
-  const [activitiesData, dispatch] = useActivityStream(roomID);
-  return (
-    <Panel>
-      <h2>{title}</h2>
-      <p>
-        The following data is the result from the <code>useActivityStream</code>{" "}
-        hook.
-      </p>
-      <pre>{JSON.stringify(activitiesData, null, 2)}</pre>
-    </Panel>
-  );
-};
 
 function fromSDKRoom(sdkConvo) {
   return {
@@ -55,8 +41,6 @@ function fromSDKRoom(sdkConvo) {
 }
 
 const sampleIds = [
-  "Y2lzY29zcGFyazovL3VzL01FU1NBR0UvMDIwMTk5YjAtOWIyNC0xMWVjLTkwOWItNTlkMDBjMDJjY2E5",
-  "Y2lzY29zcGFyazovL3VzL01FU1NBR0UvZjU3ZjhiMjAtOWIyMy0xMWVjLTk1Y2MtZGI0NWUyYzgxZjFh",
   "Y2lzY29zcGFyazovL3VzL01FU1NBR0UvOTNmN2IyYzAtOWIyMi0xMWVjLTkwNWUtMTllMzg2MDZhOGEw",
 ];
 
@@ -66,29 +50,33 @@ function App() {
   const [accessToken, setAccessToken] = useState(
     `${process.env.WEBEX_ACCESS_TOKEN}`
   );
-  const [roomID, setRoomID] = useState("Y2lzY29zcGFyazovL3VzL1JPT00vYmMyMjY2YjAtZDZjMy0xMWViLWFlZjUtNmQ3NzkwOGJmY2Ji");
-  const [personID, setPersonID] = useState("");
+  const [roomID, setRoomID] = useState(
+    "Y2lzY29zcGFyazovL3VzL1JPT00vYmMyMjY2YjAtZDZjMy0xMWViLWFlZjUtNmQ3NzkwOGJmY2Ji"
+  );
+  const [personID, setPersonID] = useState(
+    "Y2lzY29zcGFyazovL3VzL1BFT1BMRS82NTZlNzE0NS0xMzk2LTRhMzctYjFiOC1iYzYxMTU1NzQ5ZTA"
+  );
 
-  const [activityID, setActivityID] = useState("");
+  const [activityID, setActivityID] = useState(sampleIds[0]);
   const [text, setText] = useState("");
   const [formData, setFormData] = useState({});
   const [activityIDs, setActivityIDs] = useState(sampleIds);
   const adapter = React.useRef();
   const [rooms, setRooms] = useState([]);
 
-  const loadRooms = (e) => {
-    adapter.current.datasource.internal.conversation.list().then((convos) => {
-      console.log('conversations', convos);
 
-      const data = convos
-        .filter((c) => c.displayName !== undefined)
-        .map((c) => fromSDKRoom(c))
-        .sort();
-      
+  const loadRooms = (e) => {
+    return adapter.current.datasource.internal.conversation
+      .list()
+      .then((convos) => {
+        const data = convos
+          .filter((c) => c.displayName !== undefined)
+          .map((c) => fromSDKRoom(c));
+
         console.table(data);
-      
-      setRooms(data);
-    });
+
+        setRooms(data);
+      });
   };
 
   const handleSubmit = (e) => {
@@ -120,6 +108,7 @@ function App() {
   };
 
   const handleDisconnect = async () => {
+    console.log("Disconnecting....");
     setAdapterConnecting(false);
     await adapter.current.disconnect();
     setAdapterConnected(false);
@@ -141,61 +130,72 @@ function App() {
 
   let pastHandle = null;
   const handleLoadingPastActivities = () => {
-    if(pastHandle){
+    if (pastHandle) {
       pastHandle.unsubscribe();
     }
-    pastHandle = adapter.current.roomsAdapter.getPastActivities(roomID, 25).subscribe(console.table);
+    pastHandle = adapter.current.roomsAdapter
+      .getPastActivities(roomID, 25)
+      .subscribe(console.table);
     adapter.current.roomsAdapter.hasMoreActivities(roomID);
-  }
-
+  };
 
   useEffect(() => {
     async function doConnect() {
       await handleConnect();
+      //await loadRooms();
     }
-    //doConnect();
+
+    doConnect();
 
     return () => {
       handleDisconnect();
     };
   }, []);
 
+  function handleRowRender(id) {
+    return <div>{id}</div>;
+  }
+
+
+
   return (
     <div className="App">
       <div className="App-header">
-        <h1>Webex Dev App</h1>
+        <div className="flex"></div>
       </div>
       <div className="App-layout">
         <div className="App-sidebar">
-          <Panel>
-            <fieldset>
+          <Panel title="Settings">
+            <fieldset className="flex__item">
               <legend>Access Token</legend>
               <input
                 type="text"
                 value={accessToken}
                 onChange={(e) => setAccessToken(e.target.value)}
               />
+              <p>
+                Status:{" "}
+                <span>
+                  {!adapterConnected && !adapterConnecting && (
+                    <span>Disconnected</span>
+                  )}
+                  {adapterConnecting && <span>Connecting...</span>}
+                  {adapterConnected && (
+                    <span className="success">Connected</span>
+                  )}
+                </span>
+              </p>
+              <button onClick={handleConnect} disabled={adapterConnected}>
+                Connect
+              </button>
+              <button onClick={handleDisconnect} disabled={!adapterConnected}>
+                Disconnect
+              </button>
             </fieldset>
-            <fieldset>
-              <legend>Adapter Status</legend>
-              {!adapterConnected && !adapterConnecting && <p>Disconnected</p>}
-              {adapterConnecting && <p>Connecting...</p>}
-              {adapterConnected && <p className="success">Connected</p>}
-            </fieldset>
-            <button onClick={handleConnect} disabled={adapterConnected}>
-              Connect
-            </button>
-            <button onClick={handleDisconnect} disabled={!adapterConnected}>
-              Disconnect
-            </button>
-          </Panel>
-
-          <Panel>
             <form onSubmit={handleSubmit}>
               <fieldset>
                 <legend>Rooms</legend>
                 <select onChange={handleRoomChange}>
-                
                   {rooms &&
                     rooms.map((r) => (
                       <option key={r.ID} value={r.ID}>
@@ -207,12 +207,6 @@ function App() {
                   Load rooms
                 </button>
               </fieldset>
-
-              <fieldset>
-                <legend>Past Activities</legend>
-                <button onClick={handleLoadingPastActivities}>Fetch Past Activities</button>
-              </fieldset>
-
 
               <fieldset>
                 <legend>Room ID</legend>
@@ -248,7 +242,12 @@ function App() {
                 Reset
               </button>
             </form>
-
+            <fieldset>
+              <legend>Past Activities</legend>
+              <button onClick={handleLoadingPastActivities}>
+                Fetch Past Activities
+              </button>
+            </fieldset>
             <fieldset>
               <legend>Debug</legend>
               <pre>formData: {JSON.stringify(formData, null, 2)}</pre>
@@ -257,38 +256,59 @@ function App() {
         </div>
 
         <div className="App-content">
-          <Panel>
-            <form onSubmit={handleCreateMessage}>
-              <fieldset>
-                
-                <input
-                  type="text"
-                  placeholder="Write a message..."
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                />
-                <button type="submit">Send</button>
-              </fieldset>
-            </form>
-          </Panel>
-
+        
 
           {adapterConnected && (
             <WebexDataProvider adapter={adapter.current}>
-              <TestWebexActivity roomID={formData.roomID || roomID}/>
+              <TestActivityPanel activityID={activityID} />
+              {/*
+              
+              formData.personID && (
+                <Panel title="WebexAvatar">
+                  <WebexAvatar personID={formData.personID} />
+                </Panel>
+              )*/}
+
+              {/*formData.personID && (
+                <Panel title="ActivityHeader">
+                  <ActivityHeader personID={formData.personID} />
+                </Panel>
+              )*/}
+
+
+
+              {/*formData.activityID && (
+                <Panel title="WebexActivity">
+                  {activityIDs &&
+                    activityIDs.map((o, index) => (
+                      <WebexActivity activityID={o} key={index} />
+                    ))}
+                </Panel>
+                    )*/}
               <Panel>
-                <h2>WebexActivityStream (roomID)</h2>
-                {!formData.roomID && <h3>Specifiy a roomID</h3>}
                 {formData.roomID && (
                   <WebexActivityStream
                     roomID={formData.roomID}
-                    style={{ height: 500 }}
+                    style={{ height: 600 }}
                   />
                 )}
+                <form onSubmit={handleCreateMessage}>
+                  <fieldset className="flex">
+                    <input
+                      type="text"
+                      placeholder="Write a message..."
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                    />
+                    <button type="submit">Send</button>
+                  </fieldset>
+                </form>
               </Panel>
-            
 
-              
+              {/*<ErrorBoundary FallbackComponent={ErrorFallback}>
+                <TestWebexActivity roomID={formData.roomID || roomID} />
+              </ErrorBoundary>
+                */}
             </WebexDataProvider>
           )}
         </div>

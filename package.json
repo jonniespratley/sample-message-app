@@ -2,6 +2,7 @@
   "name": "sample-message-app",
   "version": "0.1.0",
   "private": true,
+  "source": "src/index.html",
   "dependencies": {
     "@babel/runtime": "^7.17.7",
     "@momentum-ui/react": "^23.25.0",
@@ -15,6 +16,7 @@
     "querystring-es3": "^0.2.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-error-boundary": "^3.1.4",
     "react-scripts": "^5.0.0",
     "rxjs": "^6.6.7",
     "util": "^0.12.4",
@@ -28,6 +30,9 @@
   },
   "resolutions": {
     "react-error-overlay": "6.0.9"
+  },
+  "alias": {
+    "_@webex/components": "../components/src/index.js"
   },
   "scripts": {
     "preinstall": "npx npm-force-resolutions",
